@@ -1,6 +1,5 @@
 <div class="row">
-  <div class="col-sm-6" *ngIf="professorSelecionado">
-
+  <div class="col-sm-4" style="margin-left: 10%; margin-top: 3%;" *ngIf="professorSelecionado">
     <div class="row">
       <div class="mr-auto">
         <app-titulo [titulo]="'Cód. professor:'+ professorSelecionado.id"></app-titulo>
@@ -10,7 +9,7 @@
       </div>
     </div>
    <br>
-   <form [formGroup]="professorForm" class="ml-2 col-6">
+   <form [formGroup]="professorForm" class="col-10">
     <div class="form-group ">
       <label for="exampleInputEmail1">Nome</label>
       <input type="text" formControlName="nome" class="form-control" id="exampleInputEmail1" aria-describedby="emailHelp">
@@ -26,26 +25,45 @@
   </form>
   </div>
 
-  <div [ngClass]="{'col-sm-6' : professorSelecionado,'col-sm-12 :' : !professorSelecionado}">
+  <div [ngClass]="{'col-sm-6' : professorSelecionado,'col-sm-8 offset-md-2' : !professorSelecionado}">
+    <br>
     <app-titulo [titulo]="titulo"></app-titulo>
-    <table class="table table-bordered table-hover">
-      <thead class="thead-dark bg-light">
+    <br>
+    <table class="table table-bordered table-hover" >
+      <thead class="thead-dark bg-light" style="text-align: center;">
         <tr>
+          <th scope="col">Visualizar</th>
           <th scope="col">ID</th>
           <th scope="col">Nome</th>
           <th scope="col">Disciplina</th>
+          <th>Opções</th>
         </tr>
       </thead>
-      <tbody>
-        <tr *ngFor="let professor of professores" style="cursor: pointer;" (click)="professorSelect(professor)">
+      <tbody style="text-align: center;">
+        <tr *ngFor="let professor of professores" >
+          <td style="display:flex;justify-content:center" ><div (click)="professorSelect(professor)" class="btn btn-outline-warning">Detalhe</div></td>
           <th scope="row"> {{professor.id}}</th>
           <td>{{professor.nome}}</td>
           <td>{{professor.disciplina}}</td>
+          <td style="display:flex;justify-content: center;">
+            <div class="btn btn-outline-primary" (click)="openModal(template)">alunos</div>
+            <div style="margin-left: 15px;" class="btn btn-outline-danger">Desativar</div>
+        </td>
         </tr>
       </tbody>
     </table>
 
   </div>
 </div>
+
+<ng-template #template>
+  <div class="modal-body">
+    <app-alunos></app-alunos>
+  </div>
+  <div class="modal-footer">
+    <button type="button" class="btn-close close pull-right" aria-label="Close" (click)="modalRef?.hide()">
+    </button>
+  </div>
+</ng-template>
 
 
