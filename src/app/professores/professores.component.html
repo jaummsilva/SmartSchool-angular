@@ -2,34 +2,31 @@
   <div class="col-sm-4" style="margin-left: 10%; margin-top: 3%;" *ngIf="professorSelecionado">
     <div class="row">
       <div class="mr-auto">
-        <app-titulo [titulo]="'Cód. professor:'+ professorSelecionado.id"></app-titulo>
+        <app-titulo [titulo]="(professorSelecionado.id === 0 ? 'Novo Professor' : 'Cód. Professor: ' + professorSelecionado.id)"></app-titulo>
       </div>
       <div class="mt-2">
         <button class="btn btn-warning" > Lista de professores</button>
       </div>
     </div>
    <br>
-   <form [formGroup]="professorForm" class="col-10">
+   <form [formGroup]="professorForm" class="col-10" (submit)="professorSubmit()">
     <div class="form-group ">
       <label for="exampleInputEmail1">Nome</label>
       <input type="text" formControlName="nome" class="form-control" id="exampleInputEmail1" aria-describedby="emailHelp">
     </div>
-    <div class="form-group">
-      <label for="exampleInputPassword1">Disciplina</label>
-      <input type="text" formControlName="disciplina" class="form-control" id="exampleInputPassword1">
-    </div>
     <div class="form-group" >
       <hr>
-      <button type="submit" class="btn btn-primary mt-2" [disabled]="!professorForm.valid">Enviar</button>
+      <button type="submit" class="btn btn-primary mt-2">Enviar</button>
     </div>
   </form>
   </div>
 
-  <div [ngClass]="{'col-sm-6' : professorSelecionado,'col-sm-8 offset-md-2' : !professorSelecionado}">
+  <div [ngClass]="{'col-sm-6' : professorSelecionado,'col-sm-8 offset-md-2' : !professorSelecionado}"> <br>
     <br>
     <app-titulo [titulo]="titulo"></app-titulo>
+    <button class="btn btn-success" (click)="professorNovo()" > Cadastrar Professor</button>
     <br>
-    <table class="table table-bordered table-hover" >
+    <table class="table table-bordered table-hover" style="margin-top: 30px;" >
       <thead class="thead-dark bg-light" style="text-align: center;">
         <tr>
           <th scope="col">Visualizar</th>
@@ -47,7 +44,6 @@
           <td>{{professor.disciplina}}</td>
           <td style="display:flex;justify-content: center;">
             <div class="btn btn-outline-primary" (click)="openModal(template)">alunos</div>
-            <div style="margin-left: 15px;" class="btn btn-outline-danger">Desativar</div>
         </td>
         </tr>
       </tbody>
