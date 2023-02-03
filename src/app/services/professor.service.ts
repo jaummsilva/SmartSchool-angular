@@ -26,11 +26,11 @@ export class ProfessorService {
   }
 
   post(professor: Professor) {
-    return this.http.post(this.baseURL, professor);
+    return this.http.post(this.baseURL, Professor);
   }
 
   put(professor: Professor) {
-    return this.http.put(`${this.baseURL}/${professor.id}`, professor);
+    return this.http.put(`${this.baseURL}/${professor.id}`, Professor);
   }
 
   delete(id: number) {

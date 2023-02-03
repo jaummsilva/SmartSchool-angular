@@ -1,80 +1,61 @@
-import { Component, OnInit, TemplateRef } from '@angular/core';
-import { Professor } from '../models/Professor';
-import {FormGroup, FormBuilder,Validators} from '@angular/forms'
-import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
-import { ProfessorService } from '../services/professor.service';
+import { Component, OnInit, TemplateRef, OnDestroy } from '@angular/core';
+import { Professor } from 'src/app/models/Professor';
+import { BsModalService, BsModalRef } from 'ngx-bootstrap/modal';
+import { Subject } from 'rxjs';
+import { NgxSpinnerService } from 'ngx-spinner';
+import { ToastrService } from 'ngx-toastr';
+import { ProfessorService } from 'src/app/services/professor.service';
+import { takeUntil } from 'rxjs/operators';
+import { Util } from 'src/app/utils/util';
+import { Disciplina } from 'src/app/models/Disciplina';
+import { Router } from '@angular/router';
+import { Aluno } from 'src/app/models/Aluno';
+import { AlunoService } from 'src/app/services/aluno.service';
 
 @Component({
   selector: 'app-professores',
   templateUrl: './professores.component.html',
   styleUrls: ['./professores.component.css']
 })
-export class ProfessoresComponent implements OnInit {
+export class ProfessoresComponent implements OnInit, OnDestroy {
 
-  public modalRef?: BsModalRef;
-  public titulo = "Professores";
-  public professorForm : FormGroup;
-
+  public titulo = 'Professores';
   public professorSelecionado: Professor;
-  public modo= 'post';
+  private unsubscriber = new Subject();
 
-  public professores : Professor  []
+  public professores: Professor[];
 
-  openModal(template: TemplateRef<any>) {
-    this.modalRef = this.modalService.show(template);
-  }
-  constructor(private sb : FormBuilder,private modalService: BsModalService,private professorService : ProfessorService) {
-    this.criarForm();
+  constructor(
+    private router: Router,
+    private professorService: ProfessorService,
+    private toastr: ToastrService,
+    private spinner: NgxSpinnerService) {}
+
+  carregarProfessores() {
+    this.spinner.show();
+    this.professorService.getAll()
+      .pipe(takeUntil(this.unsubscriber))
+      .subscribe((professores: Professor[]) => {
+        this.professores = professores;
+        this.toastr.success('Professores foram carregado com Sucesso!');
+      }, (error: any) => {
+        this.toastr.error('Professores não carregados!');
+        console.log(error);
+      }, () => this.spinner.hide()
+    );
   }
 
   ngOnInit() {
     this.carregarProfessores();
   }
 
-  carregarProfessores() {
-    this.professorService.getAll().subscribe(
-      (professores : Professor[]) => {
-        this.professores = professores;
-      },
-      (erro: any) => {
-        console.log(erro);
-      }
-    );
+  ngOnDestroy(): void {
+    this.unsubscriber.next;
+    this.unsubscriber.complete();
   }
 
-  criarForm() {
-    this.professorForm = this.sb.group({
-      id : [''],
-      nome: ['',Validators.required]
-    });
-  }
-  salvarProfessor(professor : Professor) {
-    if(professor.id !== 0) {
-      this.modo = 'put'
-    } else {
-      this.modo = 'post'
-    }
-    (this.professorService as any)[this.modo](professor).subscribe(
-      () => {
-        console.log(professor)
-        this.carregarProfessores();
-      },
-      (erro : any) => {
-        console.log(erro);
-      }
-    );
-  }
-  professorSubmit() {
-    this.salvarProfessor(this.professorForm.value)
-  }
-  professorSelect(professor: Professor) {
-    this.professorSelecionado = professor;
-    this.professorForm.patchValue(professor)
-  }
-
-  professorNovo() {
-    this.professorSelecionado = new  Professor();
-    this.professorForm.patchValue(this.professorSelecionado)
+  disciplinaConcat(disciplinas: Disciplina[]) {
+    return Util.nomeConcat(disciplinas);
   }
 
 }

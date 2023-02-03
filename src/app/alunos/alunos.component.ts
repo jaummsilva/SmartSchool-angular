@@ -1,99 +1,140 @@
-import { Component, OnInit, TemplateRef } from '@angular/core';
-import { Aluno } from '../models/Aluno';
-import {FormGroup, FormBuilder,Validators} from '@angular/forms'
+import { Component, OnInit, TemplateRef, OnDestroy } from '@angular/core';
+import { Aluno } from 'src/app/models/Aluno';
+import { FormGroup, FormBuilder, Validators } from '@angular/forms';
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
-import { AlunoService } from '../services/aluno.service';
+import { ToastrService } from 'ngx-toastr';
+import { NgxSpinnerService } from 'ngx-spinner';
+import { AlunoService } from 'src/app/services/aluno.service';
+import { takeUntil } from 'rxjs/operators';
+import { Subject } from 'rxjs';
+import { ProfessorService } from 'src/app/services/professor.service';
+import { Professor } from 'src/app/models/Professor';
+import { ActivatedRoute } from '@angular/router';
 
 @Component({
-  selector:'app-alunos',
+  selector: 'app-alunos',
   templateUrl: './alunos.component.html',
   styleUrls: ['./alunos.component.css']
 })
-export class AlunosComponent implements OnInit {
+export class AlunosComponent implements OnInit, OnDestroy {
 
-  public modalRef?: BsModalRef;
-  public alunoForm : FormGroup;
-  public titulo = "Alunos";
+  public modalRef: BsModalRef;
+  public alunoForm: FormGroup;
+  public titulo = 'Alunos';
   public alunoSelecionado: Aluno;
-  public modo= 'post';
+  public textSimple: string;
+  public profsAlunos: Professor[];
 
+  private unsubscriber = new Subject();
 
-  public alunos : Aluno[];
+  public alunos: Aluno[];
+  public aluno: Aluno;
+  public msnDeleteAluno: string;
+  public modeSave = 'post';
 
-  openModal(template: TemplateRef<any>) {
-    this.modalRef = this.modalService.show(template);
+  openModal(template: TemplateRef<any>, alunoId: number) {
+    this.professoresAlunos(template, alunoId);
   }
 
-  constructor(private fb:FormBuilder,
-    private modalService: BsModalService,
-    private alunoService : AlunoService)
+  closeModal() {
+    this.modalRef.hide();
+  }
 
-  {
+  professoresAlunos(template: TemplateRef<any>, id: number) {
+    this.spinner.show();
+    this.professorService.getByAlunoId(id)
+      .pipe(takeUntil(this.unsubscriber))
+      .subscribe((professores: Professor[]) => {
+        this.profsAlunos = professores;
+        this.modalRef = this.modalService.show(template);
+      }, (error: any) => {
+        this.toastr.error(`erro: ${error}`);
+        console.log(error);
+      }, () => this.spinner.hide()
+    );
+  }
+
+  constructor(
+    private alunoService: AlunoService,
+    private route: ActivatedRoute,
+    private professorService: ProfessorService,
+    private fb: FormBuilder,
+    private modalService: BsModalService,
+    private toastr: ToastrService,
+    private spinner: NgxSpinnerService
+  ) {
     this.criarForm();
   }
 
-  ngOnInit(){
+  ngOnInit() {
     this.carregarAlunos();
   }
-  carregarAlunos() {
-    this.alunoService.getAll().subscribe(
-      (alunos : Aluno[]) => {
-        this.alunos = alunos;
-      },
-      (erro: any) => {
-        console.log(erro);
-      }
-    );
+
+  ngOnDestroy(): void {
+    this.unsubscriber.next;
+    this.unsubscriber.complete();
   }
 
   criarForm() {
     this.alunoForm = this.fb.group({
-      id: [''],
-      nome: ['',Validators.required],
-      sobrenome : ['',Validators.required],
-      telefone: ['',Validators.required]
+      id: [0],
+      nome: ['', Validators.required],
+      sobrenome: ['', Validators.required],
+      telefone: ['', Validators.required]
     });
   }
-  salvarAluno(aluno : Aluno) {
-    if(aluno.id !== 0) {
-      this.modo = 'put'
-    } else {
-      this.modo = 'post'
-    }
-    (this.alunoService as any)[this.modo](aluno).subscribe(
-      () => {
-        console.log(aluno)
-        this.carregarAlunos();
-      },
-      (erro : any) => {
-        console.log(erro);
+
+  saveAluno() {
+    if (this.alunoForm.valid) {
+      this.spinner.show();
+
+      if (this.modeSave === 'post') {
+        this.aluno = {...this.alunoForm.value};
+      } else {
+        this.aluno = {id: this.alunoSelecionado.id, ...this.alunoForm.value};
       }
+
+      (this.alunoService as any )[this.modeSave](this.aluno)
+        .pipe(takeUntil(this.unsubscriber))
+        .subscribe(
+          () => {
+            this.carregarAlunos();
+            this.toastr.success('Aluno salvo com sucesso!');
+          }, (error: any) => {
+            this.toastr.error(`Erro: Aluno não pode ser salvo!`);
+            console.error(error);
+          }, () => this.spinner.hide()
+        );
+
+    }
+  }
+
+  carregarAlunos() {
+    const id = +this.route.snapshot.params['id'];
+
+    this.spinner.show();
+    this.alunoService.getAll()
+      .pipe(takeUntil(this.unsubscriber))
+      .subscribe((alunos: Aluno[]) => {
+        this.alunos = alunos;
+
+        if (id > 0) {
+          (this.alunoSelect as any)(this.alunos.find(aluno => aluno.id === id));
+        }
+
+        this.toastr.success('Alunos foram carregado com Sucesso!');
+      }, (error: any) => {
+        this.toastr.error('Alunos não carregados!');
+        console.log(error);
+      }, () => this.spinner.hide()
     );
   }
 
   alunoSelect(aluno: Aluno) {
+    this.modeSave = 'put';
     this.alunoSelecionado = aluno;
-    this.alunoForm.patchValue(aluno)
-  }
-  alunoNovo() {
-    this.alunoSelecionado = new  Aluno();
-    this.alunoForm.patchValue(this.alunoSelecionado)
-  }
-  alunoSubmit() {
-    this.salvarAluno(this.alunoForm.value);
+    this.alunoForm.patchValue(aluno);
   }
 
-  deletarAluno(id:number) {
-    this.alunoService.delete(id).subscribe(
-        (model : any) => {
-          console.log(model)
-          this.carregarAlunos();
-        },
-        (erro : any) => {
-          console.log(erro)
-        }
-
-    )
-  }
 
 }

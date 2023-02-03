@@ -1,65 +1,25 @@
-<div class="row">
-  <div class="col-sm-4" style="margin-left: 10%; margin-top: 3%;" *ngIf="professorSelecionado">
-    <div class="row">
-      <div class="mr-auto">
-        <app-titulo [titulo]="(professorSelecionado.id === 0 ? 'Novo Professor' : 'Cód. Professor: ' + professorSelecionado.id)"></app-titulo>
-      </div>
-      <div class="mt-2">
-        <button class="btn btn-warning" > Lista de professores</button>
-      </div>
-    </div>
-   <br>
-   <form [formGroup]="professorForm" class="col-10" (submit)="professorSubmit()">
-    <div class="form-group ">
-      <label for="exampleInputEmail1">Nome</label>
-      <input type="text" formControlName="nome" class="form-control" id="exampleInputEmail1" aria-describedby="emailHelp">
-    </div>
-    <div class="form-group" >
-      <hr>
-      <button type="submit" class="btn btn-primary mt-2">Enviar</button>
-    </div>
-  </form>
-  </div>
+<<div>
+  <app-titulo [titulo]="titulo"></app-titulo>
 
-  <div [ngClass]="{'col-sm-6' : professorSelecionado,'col-sm-8 offset-md-2' : !professorSelecionado}"> <br>
-    <br>
-    <app-titulo [titulo]="titulo"></app-titulo>
-    <button class="btn btn-success" (click)="professorNovo()" > Cadastrar Professor</button>
-    <br>
-    <table class="table table-bordered table-hover" style="margin-top: 30px;" >
-      <thead class="thead-dark bg-light" style="text-align: center;">
-        <tr>
-          <th scope="col">Visualizar</th>
-          <th scope="col">ID</th>
-          <th scope="col">Nome</th>
-          <th scope="col">Disciplina</th>
-          <th>Opções</th>
-        </tr>
-      </thead>
-      <tbody style="text-align: center;">
-        <tr *ngFor="let professor of professores" >
-          <td style="display:flex;justify-content:center" ><div (click)="professorSelect(professor)" class="btn btn-outline-warning">Detalhe</div></td>
-          <th scope="row"> {{professor.id}}</th>
-          <td>{{professor.nome}}</td>
-          <td>{{professor.disciplina}}</td>
-          <td style="display:flex;justify-content: center;">
-            <div class="btn btn-outline-primary" (click)="openModal(template)">alunos</div>
+  <table class="table table-hover">
+    <thead class="thead-light">
+      <tr>
+        <th> Visualizar</th>
+        <th scope="col">#</th>
+        <th scope="col">Nome</th>
+        <th scope="col">Disciplina</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let prof of professores">
+        <td>
+          <a [routerLink]="['/professor/', prof.id]" class="text-dark btn btn-sm btn-outline-warning">Detalhe</a>
         </td>
-        </tr>
-      </tbody>
-    </table>
-
-  </div>
+        <th scope="row">{{prof.id}}</th>
+        <td>{{prof.nome}}</td>
+        <td>{{disciplinaConcat(prof.disciplinas)}}</td>
+      </tr>
+    </tbody>
+  </table>
 </div>
-
-<ng-template #template>
-  <div class="modal-body">
-    <app-alunos></app-alunos>
-  </div>
-  <div class="modal-footer">
-    <button type="button" class="btn-close close pull-right" aria-label="Close" (click)="modalRef?.hide()">
-    </button>
-  </div>
-</ng-template>
-
 

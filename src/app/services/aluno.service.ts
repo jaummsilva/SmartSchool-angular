@@ -4,7 +4,7 @@ import { Observable } from 'rxjs';
 
 import { Aluno } from '../models/Aluno';
 
-import { environment } from 'src/environments/environments'
+import { environment } from 'src/environments/environments';
 
 @Injectable({
   providedIn: 'root'
